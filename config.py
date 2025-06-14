@@ -5,9 +5,9 @@ def load_config():
     """加载配置文件"""
     # 根据环境变量加载对应的配置文件
     env = os.getenv('FLASK_ENV', 'development')
-    if env == 'production':
+    if env == 'production' and os.path.exists('.env.production'):
         load_dotenv('.env.production', override=True)
-    elif env == 'development':
+    elif env == 'development' and os.path.exists('.env.development'):
         load_dotenv('.env.development', override=True)
     else:
         load_dotenv(override=True)  # 默认加载 .env

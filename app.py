@@ -19,6 +19,9 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # 配置 CORS
+import os
+logger.info(f"环境变量 CORS_ORIGINS: {os.getenv('CORS_ORIGINS')}")
+logger.info(f"CORS配置: {Config.CORS_ORIGINS}")
 CORS(app, origins=Config.CORS_ORIGINS)
 
 # 配置 SocketIO
@@ -112,6 +115,30 @@ def get_conversations():
         'conversations': conversation_history,
         'total': len(conversation_history)
     })
+
+@app.route('/api/conversations', methods=['DELETE'])
+def clear_conversations():
+    """清空所有对话历史"""
+    try:
+        global conversation_history
+        conversation_history.clear()
+
+        logger.info("对话历史已清空")
+
+        # 通过WebSocket通知所有客户端
+        socketio.emit('conversation_history', {
+            'conversations': [],
+            'total': 0
+        })
+
+        return jsonify({
+            'success': True,
+            'message': '对话历史已清空'
+        })
+
+    except Exception as e:
+        logger.error(f"清空对话历史时出错：{str(e)}")
+        return jsonify({'error': f'清空失败：{str(e)}'}), 500
 
 @app.route('/api/reload-config', methods=['POST'])
 def reload_config():
